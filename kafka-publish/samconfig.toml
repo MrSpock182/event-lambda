@@ -1,0 +1,11 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "kafka-publish"
+resolve_s3 = true
+s3_prefix = "kafka-publish"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []
+parameter_overrides = "ApiGatewayId=\"\" ApiGatewayResourceId=\"\""

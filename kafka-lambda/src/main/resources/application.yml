@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: kafka-lambda
+
+logging:
+  level:
+    root: INFO
+    io.github.mrspock182.kafka_lambda.messaging: DEBUG

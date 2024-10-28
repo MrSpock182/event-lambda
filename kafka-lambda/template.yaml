@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Aplicacao para listener de filas na AWS
+
+Resources:
+  KafkaLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: KafkaLambdaFunction
+      CodeUri: .
+      Handler: io.github.mrspock182.kafka_lambda.messaging.KafkaLambdaHandler::handleRequest
+      Runtime: java17
+      MemorySize: 1024
+      Role: arn:aws:iam::103120217022:role/LambdaMSKConsumer
+#      VpcConfig:
+#        SecurityGroupIds:
+#          - sg-0e3247e52091f7040
+#        SubnetIds:
+#          - subnet-0b78956167cd4cd3f
+#          - subnet-0663b8efefeee97c5
+
+  KafkaLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/KafkaLambdaFunction
+      RetentionInDays: 7
+
+  SQSTriggerKafkaLambda:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      EventSourceArn: arn:aws:sqs:us-east-1:103120217022:QueueToLambda
+      FunctionName: !GetAtt KafkaLambdaFunction.Arn
+      Enabled: true

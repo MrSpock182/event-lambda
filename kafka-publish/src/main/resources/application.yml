@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: kafka-publish
+  main:
+    allow-bean-definition-overriding: true
+  sql:
+    url: https://sqs.us-east-1.amazonaws.com/***/QueueToLambda
+    access-key: ***
+    secret-key: ***
+    region: us-east-1

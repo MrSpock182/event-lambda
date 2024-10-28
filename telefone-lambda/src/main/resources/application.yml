@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: telefone-lambda
+
+logging:
+  level:
+    root: INFO
+    io.github.mrspock182.telefone_lambda.messaging: DEBUG

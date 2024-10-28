@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  API Lambda com Spring Boot
+
+Resources:
+  KafkaPublishFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: KafkaPublishFunction
+      CodeUri: .
+      Handler: io.github.mrspock182.kafka_publish.aws.LambdaHandler::handleRequest
+      Runtime: java17
+      Architectures:
+        - x86_64
+      Timeout: 30
+      MemorySize: 512
+
+  ApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref KafkaPublishFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:amx33sd1sa/*"
+
+  PublishResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: "chlc9583i3"
+      PathPart: "publish"
+      RestApiId: "amx33sd1sa"
+
+  V1Resource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref PublishResource
+      PathPart: "v1"
+      RestApiId: "amx33sd1sa"
+
+  LambdaResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref V1Resource
+      PathPart: "lambda"
+      RestApiId: "amx33sd1sa"
+
+  GetLambdaMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: AWS_IAM
+      HttpMethod: GET
+      ResourceId: !Ref LambdaResource
+      RestApiId: "amx33sd1sa"
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${KafkaPublishFunction.Arn}/invocations
+
+  PostLambdaMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      ResourceId: !Ref LambdaResource
+      RestApiId: "amx33sd1sa"
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${KafkaPublishFunction.Arn}/invocations
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: "amx33sd1sa"
+    DependsOn:
+      - GetLambdaMethod
+      - PostLambdaMethod
+
+  ProdStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: "Prod"
+      RestApiId: "amx33sd1sa"
+      DeploymentId: !Ref ApiDeployment
+      MethodSettings:
+        - HttpMethod: "*"
+          ResourcePath: "/*"
+          MetricsEnabled: true
+
+  KafkaPublishLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/KafkaPublishFunction
+      RetentionInDays: 7
+
+Outputs:
+  KafkaPublishApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://amx33sd1sa.execute-api.${AWS::Region}.amazonaws.com/Prod/"

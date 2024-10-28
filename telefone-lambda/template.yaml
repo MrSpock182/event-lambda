@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Aplicacao para listener de filas na AWS
+
+Resources:
+  TelefoneLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TelefoneLambdaFunction
+      CodeUri: .
+      Handler: io.github.mrspock182.telefone_lambda.messaging.TelefoneLambdaHandler::handleRequest
+      Runtime: java17
+      MemorySize: 1024
+      Role: arn:aws:iam::103120217022:role/LambdaMSKConsumer
+
+  TelefoneLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/TelefoneLambdaFunction
+      RetentionInDays: 7
+
+  SQSTriggerTelefoneLambda:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      EventSourceArn: arn:aws:sqs:us-east-1:103120217022:QueueToLambda
+      FunctionName: !GetAtt TelefoneLambdaFunction.Arn
+      Enabled: true
