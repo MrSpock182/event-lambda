@@ -1,20 +1,28 @@
 package io.github.mrspock182.kafka_lambda.messaging;
 
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mrspock182.kafka_lambda.messaging.dto.LambdaMessage;
+import io.github.mrspock182.kafka_lambda.service.LoggerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.function.Function;
 
-public class KafkaLambdaHandler implements RequestHandler<SQSEvent, String> {
+@Component
+public class KafkaLambdaHandler implements Function<SQSEvent, String> {
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaLambdaHandler.class);
 
+    private final LoggerService loggerService;
+
+    public KafkaLambdaHandler(LoggerService loggerService) {
+        this.loggerService = loggerService;
+    }
+
     @Override
-    public String handleRequest(final SQSEvent event, final Context context) {
+    public String apply(final SQSEvent event) {
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -26,7 +34,7 @@ public class KafkaLambdaHandler implements RequestHandler<SQSEvent, String> {
                     if (lambdaMessage.message().equals("Ronaldo")) {
                         throw new IllegalArgumentException("Aconteceu um erro na leitura");
                     }
-                    LOGGER.info("Mensagem SQS: {}", lambdaMessage);
+                    loggerService.log(lambdaMessage);
                 } else {
                     LOGGER.info("A mensagem chegou, mas não é um email");
                 }

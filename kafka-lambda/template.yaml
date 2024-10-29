@@ -9,10 +9,15 @@ Resources:
     Properties:
       FunctionName: KafkaLambdaFunction
       CodeUri: .
-      Handler: io.github.mrspock182.kafka_lambda.messaging.KafkaLambdaHandler::handleRequest
+      Handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker
       Runtime: java17
       MemorySize: 1024
+      Timeout: 30
       Role: arn:aws:iam::103120217022:role/LambdaMSKConsumer
+      Environment:
+        Variables:
+          SPRING_CLOUD_FUNCTION_DEFINITION: kafkaLambdaHandler
+          MAIN_CLASS: io.github.mrspock182.kafka_lambda.KafkaLambdaApplication
 #      VpcConfig:
 #        SecurityGroupIds:
 #          - sg-0e3247e52091f7040
